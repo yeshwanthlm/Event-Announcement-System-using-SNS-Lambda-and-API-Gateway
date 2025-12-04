@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Announcement System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 Event Announcement System</h1>
+            <button class="subscribe-btn" onclick="subscribeToEvents()">📧 Subscribe to Events</button>
+        </header>
+
+        <section class="events-section">
+            <div class="section-header">
+                <h2>Latest Events</h2>
+                <button class="create-event-btn" onclick="showCreateEventForm()">➕ Create New Event</button>
+            </div>
+            <div id="events-list"></div>
+        </section>
+    </div>
+
+    <!-- Subscribe Modal -->
+    <div id="subscribeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSubscribeModal()">&times;</span>
+            <h2>Subscribe to Event Notifications</h2>
+            <form id="subscribeForm" onsubmit="submitSubscription(event)">
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+                </div>
+                <button type="submit" class="submit-btn">Subscribe</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div id="createEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateEventModal()">&times;</span>
+            <h2>Create New Event</h2>
+            <form id="createEventForm" onsubmit="submitNewEvent(event)">
+                <div class="form-group">
+                    <label for="eventTitle">Event Title:</label>
+                    <input type="text" id="eventTitle" name="title" required placeholder="Enter event title">
+                </div>
+                <div class="form-group">
+                    <label for="eventDate">Event Date:</label>
+                    <input type="date" id="eventDate" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="eventDescription">Event Description:</label>
+                    <textarea id="eventDescription" name="description" required placeholder="Enter event description"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Create Event</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API Gateway endpoints - REPLACE THESE AFTER TERRAFORM DEPLOYMENT
+        const API_BASE_URL = 'https://4t56hmizb4.execute-api.us-east-1.amazonaws.com/dev';
+        const SUBSCRIBE_ENDPOINT = `${API_BASE_URL}/subscribe`;
+        const CREATE_EVENT_ENDPOINT = `${API_BASE_URL}/create-event`;
+
+        // Load events on page load
+        window.onload = function() {
+            loadEvents();
+        };
+
+        // Load events from events.json
+        async function loadEvents() {
+            try {
+                const response = await fetch('events.json');
+                const events = await response.json();
+                displayEvents(events);
+            } catch (error) {
+                console.error('Error loading events:', error);
+                document.getElementById('events-list').innerHTML = '<p>Error loading events. Please try again later.</p>';
+            }
+        }
+
+        // Display events in the UI
+        function displayEvents(events) {
+            const eventsList = document.getElementById('events-list');
+            eventsList.innerHTML = '';
+
+            if (events.length === 0) {
+                eventsList.innerHTML = '<p>No events available at the moment.</p>';
+                return;
+            }
+
+            events.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                eventCard.innerHTML = `
+                    <h3>${event.title}</h3>
+                    <p class="event-date">📅 ${event.date}</p>
+                    <p class="event-description">${event.description}</p>
+                `;
+                eventsList.appendChild(eventCard);
+            });
+        }
+
+        // Show subscribe modal
+        function subscribeToEvents() {
+            document.getElementById('subscribeModal').style.display = 'block';
+        }
+
+        // Close subscribe modal
+        function closeSubscribeModal() {
+            document.getElementById('subscribeModal').style.display = 'none';
+        }
+
+        // Show create event modal
+        function showCreateEventForm() {
+            document.getElementById('createEventModal').style.display = 'block';
+        }
+
+        // Close create event modal
+        function closeCreateEventModal() {
+            document.getElementById('createEventModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const subscribeModal = document.getElementById('subscribeModal');
+            const createEventModal = document.getElementById('createEventModal');
+            if (event.target == subscribeModal) {
+                subscribeModal.style.display = 'none';
+            }
+            if (event.target == createEventModal) {
+                createEventModal.style.display = 'none';
+            }
+        }
+
+        // Submit subscription
+        async function submitSubscription(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch(SUBSCRIBE_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Subscription successful! Please check your email to confirm.');
+                    closeSubscribeModal();
+                    document.getElementById('subscribeForm').reset();
+                } else {
+                    alert('Subscription failed: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error subscribing. Please try again later.');
+            }
+        }
+
+        // Submit new event
+        async function submitNewEvent(event) {
+            event.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('eventTitle').value,
+                date: document.getElementById('eventDate').value,
+                description: document.getElementById('eventDescription').value
+            };
+
+            try {
+                const response = await fetch(CREATE_EVENT_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Event created successfully! Subscribers will be notified.');
+                    closeCreateEventModal();
+                    document.getElementById('createEventForm').reset();
+                    // Reload events after a short delay to allow S3 to update
+                    setTimeout(loadEvents, 2000);
+                } else {
+                    alert('Failed to create event: ' + (data.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating event. Please try again later.');
+            }
+        }
+    </script>
+</body>
+</html>
