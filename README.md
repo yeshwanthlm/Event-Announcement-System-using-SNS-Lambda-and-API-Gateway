@@ -12,6 +12,7 @@ A serverless event announcement system built with AWS services and managed entir
 - **Complete Infrastructure as Code**: Everything managed with Terraform
 
 ## Architecture
+<img width="1281" height="540" alt="image" src="https://github.com/user-attachments/assets/725b9ea1-7820-4cb1-9e5a-bbfd8027f7b2" />
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
