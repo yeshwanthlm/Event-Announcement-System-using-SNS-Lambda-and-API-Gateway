@@ -2,6 +2,10 @@
 
 A serverless event announcement system built with AWS services and managed entirely through Terraform. This project allows users to subscribe to event notifications via email and create new events that automatically notify all subscribers.
 
+## Video Tutorial:
+<img width="1920" height="1080" alt="Event Announcement System" src="https://github.com/user-attachments/assets/23a3c4a3-2be6-4d2f-b18a-ae762e7b81e5" />
+Video link: 
+
 ## 🚀 Key Features
 
 - **CloudFront CDN Integration**: Fast global content delivery with HTTPS
