@@ -4,7 +4,7 @@ A serverless event announcement system built with AWS services and managed entir
 
 ## Video Tutorial:
 <img width="1920" height="1080" alt="Event Announcement System" src="https://github.com/user-attachments/assets/23a3c4a3-2be6-4d2f-b18a-ae762e7b81e5" />
-Video link: 
+Video link: https://youtu.be/_3g9SKlRIWk
 
 ## 🚀 Key Features
 
